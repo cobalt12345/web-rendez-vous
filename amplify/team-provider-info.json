@@ -1,0 +1,26 @@
+{
+    "dev": {
+        "awscloudformation": {
+            "AuthRoleName": "amplify-webrendezvous-dev-190813-authRole",
+            "UnauthRoleArn": "arn:aws:iam::785668202743:role/amplify-webrendezvous-dev-190813-unauthRole",
+            "AuthRoleArn": "arn:aws:iam::785668202743:role/amplify-webrendezvous-dev-190813-authRole",
+            "Region": "eu-central-1",
+            "DeploymentBucketName": "amplify-webrendezvous-dev-190813-deployment",
+            "UnauthRoleName": "amplify-webrendezvous-dev-190813-unauthRole",
+            "StackName": "amplify-webrendezvous-dev-190813",
+            "StackId": "arn:aws:cloudformation:eu-central-1:785668202743:stack/amplify-webrendezvous-dev-190813/986930c0-4309-11ec-9c79-0aa7356ae93a",
+            "AmplifyAppId": "dm8lmscobp7pc"
+        },
+        "categories": {
+            "auth": {
+                "webrendezvous8c39876c": {}
+            },
+            "hosting": {
+                "amplifyhosting": {
+                    "appId": "dm8lmscobp7pc",
+                    "type": "manual"
+                }
+            }
+        }
+    }
+}
