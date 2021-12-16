@@ -13,7 +13,7 @@ const AppWithAuth = withAuthenticator(App);
 
 ReactDOM.render(
   <React.StrictMode>
-      {window.location.hostname === 'localhost' ? <App/> : <AppWithAuth />}
+      <AppWithAuth />
   </React.StrictMode>,
   document.getElementById('root')
 );
