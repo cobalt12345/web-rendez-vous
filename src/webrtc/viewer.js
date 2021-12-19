@@ -7,19 +7,29 @@ export default class Viewer extends Caller {
     remoteStream;
     dataChannel;
 
+    constructor(config) {
+        super(config);
+
+        this.onOpen = this.onOpen.bind(this);
+        this.onSdpAnswer = this.onSdpAnswer.bind(this);
+        this.onIceCandidate = this.onIceCandidate.bind(this);
+        this.onClose = this.onClose.bind(this);
+        this.onError = this.onError.bind(this);
+    }
     async onOpen() {
         LOG.log('[VIEWER] Connected to signaling service');
 
         // Get a stream from the webcam, add it to the peer connection, and display it in the local view.
         // If no video/audio needed, no need to request for the sources.
         // Otherwise, the browser will throw an error saying that either video or audio has to be enabled.
-        if (super.config.sendVideo || super.config.sendAudio) {
+        if (this.config.sendVideo || this.config.sendAudio) {
             try {
-                super.localStream = await navigator.mediaDevices.getUserMedia(super.constraints);
-                super.localStream.getTracks().forEach(track => super.peerConnection.addTrack(track,
-                    super.localStream));
+                this.localStream = await navigator.mediaDevices.getUserMedia(this.constraints);
+                this.localStream.getTracks().forEach(track => this.peerConnection.addTrack(track,
+                    this.localStream));
 
-                super.config.localView.srcObject = super.localStream;
+                const localView = document.getElementById(this.config.localViewId);
+                localView.srcObject = this.localStream;
             } catch (err) {
                 LOG.error('[VIEWER] Could not find webcam', err);
                 return;
@@ -27,17 +37,17 @@ export default class Viewer extends Caller {
         }
         // Create an SDP offer to send to the master
         LOG.log('[VIEWER] Creating SDP offer');
-        await super.peerConnection.setLocalDescription(
-            await super.peerConnection.createOffer({
+        await this.peerConnection.setLocalDescription(
+            await this.peerConnection.createOffer({
                 offerToReceiveAudio: true,
                 offerToReceiveVideo: true,
             }),
         );
 
         // When trickle ICE is enabled, send the offer now and then send ICE candidates as they are generated. Otherwise wait on the ICE candidates.
-        if (super.config.useTrickleICE) {
+        if (this.config.useTrickleICE) {
             LOG.log('[VIEWER] Sending SDP offer');
-            super.signalingClient.sendSdpOffer(super.peerConnection.localDescription);
+            this.signalingClient.sendSdpOffer(this.peerConnection.localDescription);
         }
         LOG.log('[VIEWER] Generating ICE candidates');
     }
@@ -45,13 +55,13 @@ export default class Viewer extends Caller {
     async onSdpAnswer(answer) {
         // Add the SDP answer to the peer connection
         LOG.log('[VIEWER] Received SDP answer');
-        await super.peerConnection.setRemoteDescription(answer);
+        await this.peerConnection.setRemoteDescription(answer);
     }
 
     onIceCandidate(candidate) {
         // Add the ICE candidate received from the MASTER to the peer connection
         LOG.log('[VIEWER] Received ICE candidate');
-        super.peerConnection.addIceCandidate(candidate).then(()=>LOG.debug('ICE candidate added'))
+        this.peerConnection.addIceCandidate(candidate).then(()=>LOG.debug('ICE candidate added'))
             .catch(error => LOG.error(error));
     }
 
@@ -65,63 +75,72 @@ export default class Viewer extends Caller {
 
     async start() {
         super.start().then(() => {
-            super.peerConnectionStatsInterval = setInterval(() => super.peerConnection.getStats()
-                .then(super.onStatisticReport()), 1000);
+            this.peerConnection = new RTCPeerConnection(this.configuration);
+            LOG.debug(`[VIEWER] RTC peer connection:`, this.peerConnection);
+            if (this.config.openDataChannel) {
+                this.dataChannel = this.peerConnection.createDataChannel('kvsDataChannel');
+                this.peerConnection.ondatachannel = event => {
+                    event.channel.onmessage = this.onRemoteDataMessage;
+                };
+            }
+            this.peerConnectionStatsInterval = setInterval(() => this.peerConnection.getStats()
+                .then(this.onStatisticReport()), 1000);
 
-            super.signalingClient.on('open', this.onOpen);
-            super.signalingClient.on('sdpAnswer', this.onSdpAnswer);
-            super.signalingClient.on('iceCandidate', this.onIceCandidate);
-            super.signalingClient.on('close', this.onClose);
-            super.signalingClient.on('error', this.onError);
+            this.signalingClient.on('open', this.onOpen);
+            this.signalingClient.on('sdpAnswer', this.onSdpAnswer);
+            this.signalingClient.on('iceCandidate', this.onIceCandidate);
+            this.signalingClient.on('close', this.onClose);
+            this.signalingClient.on('error', this.onError);
             // Send any ICE candidates to the other peer
-            super.peerConnection.addEventListener('icecandidate', ({ candidate }) => {
+            this.peerConnection.addEventListener('icecandidate', ({ candidate }) => {
                 if (candidate) {
                     LOG.log('[VIEWER] Generated ICE candidate');
 
                     // When trickle ICE is enabled, send the ICE candidates as they are generated.
-                    if (super.config.useTrickleICE) {
+                    if (this.config.useTrickleICE) {
                         LOG.log('[VIEWER] Sending ICE candidate');
-                        super.signalingClient.sendIceCandidate(candidate);
+                        this.signalingClient.sendIceCandidate(candidate);
                     }
                 } else {
                     LOG.log('[VIEWER] All ICE candidates have been generated');
 
                     // When trickle ICE is disabled, send the offer now that all the ICE candidates have ben generated.
-                    if (!super.config.useTrickleICE) {
+                    if (!this.config.useTrickleICE) {
                         LOG.log('[VIEWER] Sending SDP offer');
-                        super.signalingClient.sendSdpOffer(super.peerConnection.localDescription);
+                        this.signalingClient.sendSdpOffer(this.peerConnection.localDescription);
                     }
                 }
             });
             // As remote tracks are received, add them to the remote view
-            super.peerConnection.addEventListener('track', event => {
+            this.peerConnection.addEventListener('track', event => {
                 LOG.log('[VIEWER] Received remote track');
-                if (super.config.remoteView.srcObject) {
+                const remoteView = document.getElementById(this.config.remoteViewId);
+                if (remoteView.srcObject) {
                     return;
                 }
                 this.remoteStream = event.streams[0];
-                super.config.remoteView.srcObject = this.remoteStream;
+                remoteView.srcObject = this.remoteStream;
             });
             LOG.log('[VIEWER] Starting viewer connection');
-            super.signalingClient.open();
+            this.signalingClient.open();
         });
     }
 
     stop() {
         LOG.log('[VIEWER] Stopping viewer connection');
-        if (super.signalingClient) {
-            super.signalingClient.close();
-            super.signalingClient = null;
+        if (this.signalingClient) {
+            this.signalingClient.close();
+            this.signalingClient = null;
         }
 
-        if (super.peerConnection) {
-            super.peerConnection.close();
-            super.peerConnection = null;
+        if (this.peerConnection) {
+            this.peerConnection.close();
+            this.peerConnection = null;
         }
 
-        if (super.localStream) {
-            super.localStream.getTracks().forEach(track => track.stop());
-            super.localStream = null;
+        if (this.localStream) {
+            this.localStream.getTracks().forEach(track => track.stop());
+            this.localStream = null;
         }
 
         if (this.remoteStream) {
@@ -129,17 +148,18 @@ export default class Viewer extends Caller {
             this.remoteStream = null;
         }
 
-        if (super.peerConnectionStatsInterval) {
-            clearInterval(super.peerConnectionStatsInterval);
-            super.peerConnectionStatsInterval = null;
+        if (this.peerConnectionStatsInterval) {
+            clearInterval(this.peerConnectionStatsInterval);
+            this.peerConnectionStatsInterval = null;
         }
 
-        if (super.config.localView) {
-            super.config.localView.srcObject = null;
+        const localView = document.getElementById(this.config.localViewId);
+        if (localView) {
+            localView.srcObject = null;
         }
-
-        if (super.config.remoteView) {
-            super.config.remoteView.srcObject = null;
+        const remoteView = document.getElementById(this.config.remoteViewId);
+        if (remoteView) {
+            remoteView.srcObject = null;
         }
 
         if (this.dataChannel) {

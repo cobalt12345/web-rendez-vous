@@ -10,13 +10,13 @@ export default class Workspace extends React.Component {
     constructor(props) {
         super(props);
         try {
-            this._localView = <video autoPlay playsInline controls muted/>;
-            this._remoteView = <video autoPlay playsInline controls/>;
-
-            Config.localView = this._localView;
-            Config.remoteView = this._remoteView;
+            this._localView = <video id={this.getLocalViewId()} controls playsInline muted width="90%"/>;
+            this._remoteView = <video id={this.getRemoteViewId()} controls playsInline width="90%"/>
+            Config.localViewId = this.getLocalViewId();
+            Config.remoteViewId = this.getRemoteViewId();
             this.state = {
-                Config
+                Config,
+                workspaceStarted: false
             };
             LOG.log('Configuration: ', Object.entries(Config));
             this.initController();
@@ -39,6 +39,14 @@ export default class Workspace extends React.Component {
         this._controller = newController;
     }
 
+    getLocalViewId() {
+        throw new Error('Not implemented');
+    }
+
+    getRemoteViewId() {
+        throw new Error('Not implemented');
+    }
+
     get localView() {
         return this._localView;
     }
@@ -53,14 +61,32 @@ export default class Workspace extends React.Component {
     }
 
     componentDidMount() {
-        this._controller.start();
+
     }
 
     componentWillUnmount() {
         this._controller.stop();
+        this.setState({workspaceStarted: false});
     }
 
     render() {
+        const {currentUserCredentials} = this.props;
+        if (!currentUserCredentials) {
+            LOG.debug('No current user credentials.');
+        } else {
+            if (!this.state.workspaceStarted) {
+                LOG.debug('Try to start workspace. Current user credentials:', currentUserCredentials);
+                const newState = {
+                    workspaceStarted: true
+                };
+                this.setState(newState);
+                this._controller.setCredentials(currentUserCredentials);
+                this._controller.start();
+            } else {
+                LOG.debug('Workspace is already started.');
+            }
+        }
+
         return (null);
     }
 }

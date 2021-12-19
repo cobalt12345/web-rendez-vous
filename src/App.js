@@ -1,49 +1,80 @@
 import './App.css';
 import MasterWorkspace from './MasterWorkspace';
 import ViewerWorkspace from './ViewerWorkspace';
-import {Hub, Auth} from "aws-amplify";
+import {Auth} from "aws-amplify";
 import LOG from './Logger';
-import awsconfig from "./aws-exports";
-import {fromCognitoIdentityPool} from "@aws-sdk/credential-providers";
+import React from "react";
+import { Switch } from '@mui/material';
 
-const defaultCredentials = new fromCognitoIdentityPool(
-    {
-        identityPoolId: awsconfig.aws_cognito_identity_pool_id,
-        clientConfig: { region: awsconfig.aws_project_region }
+const checkForVideoAudioAccess = async () => {
+    try {
+        const cameraResult = await navigator.permissions.query({ name: 'camera' });
+        LOG.info('Camera access: ', cameraResult.state);
+        // The state property may be 'denied', 'prompt' and 'granted'
+        // this.isCameraAccessGranted = cameraResult.state !== 'denied';
+
+        const microphoneResult = await navigator.permissions.query({ name: 'microphone' });
+        // this.isMicrophoneAccessGranted = microphoneResult.state !== 'denied';
+        LOG.info('Micro access: ', microphoneResult.state);
+    } catch(e) {
+        console.error('An error occurred while checking the site permissions', e);
     }
-);
-LOG.debug('Default credentials', defaultCredentials);
-Hub.listen('auth', data => LOG.debug('Auth. event', data));
-Hub.listen('auth', data => {
-    defaultCredentials.params.Logins = defaultCredentials.params.logins || {};
-    if (data.payload.event === 'signIn') {
-        if ('iss' in data.payload.data.signInUserSession.idToken.payload) {
-            LOG.debug('Authentication via Cognito');
-            defaultCredentials.params.Logins[data.payload.data.signInUserSession.idToken.payload.iss.slice('https://'.length - 1)]
-                = data.payload.data.signInUserSession.idToken.jwtToken;
-        }
-        for (let provider of data.payload.data.signInUserSession.idToken.payload.identities) {
-            if (provider.providerName === 'Google') {
-                defaultCredentials.params.Logins['accounts.google.com'] =
-                    data.payload.data.signInUserSession.idToken.jwtToken;
-            }
-        }
-    }
-});
 
-function App() {
-    (() => debugAuthContext())();
-
-  return (
-    <div className="App">
-      <header>
-        Test page
-      </header>
-        <MasterWorkspace />
-    </div>
-  );
+    return true;
 }
 
+checkForVideoAudioAccess();
+
+class App extends React.Component {
+    constructor(props) {
+        super(props);
+        LOG.debug('App props:', props);
+        Auth.currentCredentials().then(currentUserCredentials =>
+        {
+            LOG.debug('Current user credentials:', currentUserCredentials);
+            this.setState({currentUserCredentials});
+        });
+        const {signOut} = props;
+        this.state = {signOut, isMaster: false};
+        this.masterOrViewerChoice = this.masterOrViewerChoice.bind(this);
+    }
+
+    componentDidMount() {
+
+    }
+
+    masterOrViewerChoice() {
+        this.setState(prevState => {
+            return {
+                isMaster: !prevState.isMaster
+            }
+        });
+    }
+
+    render() {
+        LOG.debug('Render App');
+
+        let workspace;
+        if (this.state.isMaster) {
+            workspace = <MasterWorkspace currentUserCredentials={this.state.currentUserCredentials}/>;
+        } else {
+            workspace = <ViewerWorkspace currentUserCredentials={this.state.currentUserCredentials}/>
+        }
+
+        return (
+            <div className="App">
+                <header>
+                    {this.state.isMaster ? 'Master Workspace' : 'Viewer Workspace'}
+                </header>
+                <Switch onChange={this.masterOrViewerChoice} />
+                {workspace}
+                <button onClick={this.state.signOut}>Sign out</button>
+            </div>
+        );
+    }
+}
+
+export default App;
 
 async function debugAuthContext() {
     try {
@@ -78,4 +109,3 @@ async function debugAuthContext() {
     }
 }
 
-export default App;

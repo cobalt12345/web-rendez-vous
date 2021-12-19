@@ -6,6 +6,8 @@ import reportWebVitals from './reportWebVitals';
 import Amplify from "aws-amplify";
 import awsExports from "./aws-exports";
 import { withAuthenticator } from '@aws-amplify/ui-react'
+import { AmplifyProvider } from '@aws-amplify/ui-react';
+import '@aws-amplify/ui-react/styles.css'; // default theme
 
 Amplify.configure(awsExports);
 
@@ -13,7 +15,9 @@ const AppWithAuth = withAuthenticator(App);
 
 ReactDOM.render(
   <React.StrictMode>
-      <AppWithAuth />
+      <AmplifyProvider>
+        <AppWithAuth />
+      </AmplifyProvider>
   </React.StrictMode>,
   document.getElementById('root')
 );

@@ -1,6 +1,8 @@
 import Workspace from './Workspace';
 import React from "react";
 import Master from "./webrtc/master";
+import LOG from './Logger';
+import { Grid } from '@mui/material';
 
 export default class MasterWorkspace extends Workspace {
 
@@ -8,23 +10,28 @@ export default class MasterWorkspace extends Workspace {
         return new Master(this.state.Config);
     }
 
+    getLocalViewId() {
+        return "masterLocalView";
+    }
+
+    getRemoteViewId() {
+        return "masterRemoteView";
+    }
+
     render() {
+        LOG.debug("Render MasterWorkspace with props:", this.props);
+        super.render();
         return (
-            <div>
-                <h2>Master</h2>
-                <div>
-                    <h5>Master Section</h5>
-                    <div>
-                        ${super.localView}
-                    </div>
-                </div>
-                <div>
-                    <h5>Viewer Return Channel</h5>
-                    <div>
-                        ${super.remoteView}
-                    </div>
-                </div>
-            </div>
+            <Grid container spacing={2}>
+                <Grid item xs={6} lg={6}>
+                    <h5>Local Stream View</h5>
+                    {this.localView}
+                </Grid>
+                <Grid item xs={6} lg={6}>
+                    <h5>Remote Stream View</h5>
+                    {this.remoteView}
+                </Grid>
+            </Grid>
         );
     }
 }
