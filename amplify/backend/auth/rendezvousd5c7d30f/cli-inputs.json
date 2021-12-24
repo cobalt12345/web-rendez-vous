@@ -72,7 +72,9 @@
       "Google"
     ],
     "hostedUIProviderMeta": "[{\"ProviderName\":\"Google\",\"authorize_scopes\":\"openid email profile\",\"AttributeMapping\":{\"email\":\"email\",\"username\":\"sub\"}}]",
-    "oAuthMetadata": "{\"AllowedOAuthFlows\":[\"code\"],\"AllowedOAuthScopes\":[\"phone\",\"email\",\"openid\",\"profile\",\"aws.cognito.signin.user.admin\"],\"CallbackURLs\":[\"https://dev.dgd3fo940hx0n.amplifyapp.com/\"],\"LogoutURLs\":[\"https://dev.dgd3fo940hx0n.amplifyapp.com/\"]}",
-    "authProviders": []
+    "authProviders": [],
+    "hostedUIProviderCreds": "[{\"ProviderName\":\"Google\"}]",
+    "googleClientId": "102645471861-ian5dqhojmnruotlv9il9emodjgdgn4r.apps.googleusercontent.com",
+    "oAuthMetadata": "{\"AllowedOAuthFlows\":[\"code\"],\"AllowedOAuthScopes\":[\"phone\",\"email\",\"openid\",\"profile\",\"aws.cognito.signin.user.admin\"],\"CallbackURLs\":[\"https://www.rendez-vous.talochk.in/\"],\"LogoutURLs\":[\"https://www.rendez-vous.talochk.in/\"]}"
   }
 }

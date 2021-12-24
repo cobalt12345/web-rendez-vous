@@ -26,7 +26,7 @@
       "function": {
         "AdminQueries3ce8e464": {
           "deploymentBucketName": "amplify-rendezvous-dev-62710-deployment",
-          "s3Key": "amplify-builds/AdminQueries3ce8e464-3236765a6c706d61575a-build.zip"
+          "s3Key": "amplify-builds/AdminQueries3ce8e464-2b30563231366e4c6477-build.zip"
         }
       }
     }

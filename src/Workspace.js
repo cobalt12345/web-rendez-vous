@@ -1,6 +1,8 @@
 import React from "react";
 import {Config} from "./webrtc/caller";
 import LOG from './Logger';
+import { Grid, Button } from '@mui/material';
+import {createConsole} from "./inlineConsole";
 
 export default class Workspace extends React.Component {
     _controller;
@@ -9,17 +11,26 @@ export default class Workspace extends React.Component {
 
     constructor(props) {
         super(props);
+        // this.wsRef = React.createRef();
+        this.console = createConsole();
+        this.submitMessage = this.submitMessage.bind(this);
+        this.showHideConsole = this.showHideConsole.bind(this);
+        this.componentDidMount = this.componentDidMount.bind(this);
+        this.componentWillUnmount = this.componentWillUnmount.bind(this);
+        this.startStopHandle = this.startStopHandle.bind(this);
         try {
-            this._localView = <video id={this.getLocalViewId()} controls playsInline muted width="90%"/>;
-            this._remoteView = <video id={this.getRemoteViewId()} controls playsInline width="90%"/>
+            this._localView = <video id={this.getLocalViewId()} autoPlay controls playsInline muted width="90%"/>;
+            this._remoteView = <video id={this.getRemoteViewId()} autoPlay controls playsInline width="90%"/>
             Config.localViewId = this.getLocalViewId();
             Config.remoteViewId = this.getRemoteViewId();
             this.state = {
                 Config,
-                workspaceStarted: false
+                workspaceStarted: false,
+                inlineConsoleVisible: false
             };
             LOG.log('Configuration: ', Object.entries(Config));
             this.initController();
+
         } catch(error) {
             LOG.error('Workspace is not created.', error);
 
@@ -61,7 +72,24 @@ export default class Workspace extends React.Component {
     }
 
     componentDidMount() {
+        const inlinedConsole = createConsole();
+        document.body.appendChild(inlinedConsole);
+        LOG.debug('Created inline console: ' + inlinedConsole);
+        const localStreamViewHeader = document.querySelector('#localStreamViewHeader');
+        localStreamViewHeader.addEventListener('dblclick', event => this.showHideConsole());
+    }
 
+    showHideConsole() {
+        this.setState((prevState, props) => {
+            let inlinedConsole = document.getElementById('consoleWrapper');
+
+            if (prevState.inlineConsoleVisible) {
+                inlinedConsole.setAttribute('hidden', 'true');
+            } else {
+                inlinedConsole.removeAttribute('hidden');
+            }
+            return {...prevState, inlineConsoleVisible: !prevState.inlineConsoleVisible};
+        });
     }
 
     componentWillUnmount() {
@@ -69,24 +97,63 @@ export default class Workspace extends React.Component {
         this.setState({workspaceStarted: false});
     }
 
+    submitMessage() {
+        const textAreaMessages = document.getElementById('messages');
+        LOG.debug('Text area messages:', textAreaMessages);
+        try {
+            const textContent = textAreaMessages.value;
+            this._controller.sendMessage(textContent);
+            LOG.debug('Submit messages');
+        } catch(error) {
+            LOG.error('Send message error:', error);
+        }
+    }
+
+    startStopHandle() {
+        this.setState((prevState, props) => {
+            const newState = {...prevState, workspaceStarted: !prevState.workspaceStarted};
+            if (newState.workspaceStarted) {
+                LOG.debug('Start');
+                this._controller.start();
+            } else {
+                LOG.debug('Stop');
+                this._controller.stop();
+            }
+
+            return newState;
+        });
+    }
+
     render() {
         const {currentUserCredentials} = this.props;
         if (!currentUserCredentials) {
             LOG.debug('No current user credentials.');
         } else {
-            if (!this.state.workspaceStarted) {
-                LOG.debug('Try to start workspace. Current user credentials:', currentUserCredentials);
-                const newState = {
-                    workspaceStarted: true
-                };
-                this.setState(newState);
-                this._controller.setCredentials(currentUserCredentials);
-                this._controller.start();
-            } else {
-                LOG.debug('Workspace is already started.');
-            }
+            this._controller.setCredentials(currentUserCredentials);
         }
-
-        return (null);
+        const ClientId = this._controller.config.clientId ? <Grid item xs={12} lg={12}>Client id: {this._controller.config.clientId}</Grid> : null;
+        return (
+            <Grid container spacing={2}>
+                {ClientId}
+                <Grid item xs={6} lg={6}>
+                    <h5 id='localStreamViewHeader'>Local Stream View</h5>
+                    {this.localView}
+                </Grid>
+                <Grid item xs={6} lg={6}>
+                    <h5>Remote Stream View</h5>
+                    {this.remoteView}
+                </Grid>
+                <Grid item xs={12} lg={12}>
+                    <Button variant="contained" onClick={this.startStopHandle}>{this.state.workspaceStarted ? 'Stop' : 'Start'}</Button>
+                </Grid>
+                {/*<Grid item xs={8} lg={8}>*/}
+                {/*    <h4>Chat:</h4>*/}
+                {/*    <textarea id="messages" type="text" placeholder="DataChannel Message" rows={7} cols={30}></textarea>*/}
+                {/*</Grid>*/}
+                {/*<Grid item>*/}
+                {/*    <button onClick={this.submitMessage}>Send</button>*/}
+                {/*</Grid>*/}
+            </Grid>
+        );
     }
 }

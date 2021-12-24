@@ -6,15 +6,19 @@ export default class Viewer extends Caller {
 
     remoteStream;
     dataChannel;
+    peerConnection;
 
     constructor(config) {
         super(config);
 
+        this.start = this.start.bind(this);
+        this.stop = this.stop.bind(this);
         this.onOpen = this.onOpen.bind(this);
         this.onSdpAnswer = this.onSdpAnswer.bind(this);
         this.onIceCandidate = this.onIceCandidate.bind(this);
         this.onClose = this.onClose.bind(this);
         this.onError = this.onError.bind(this);
+        this.sendMessage = this.sendMessage.bind(this);
     }
     async onOpen() {
         LOG.log('[VIEWER] Connected to signaling service');
@@ -30,6 +34,11 @@ export default class Viewer extends Caller {
 
                 const localView = document.getElementById(this.config.localViewId);
                 localView.srcObject = this.localStream;
+                localView.onloadedmetadata = function (e) {
+                    LOG.debug('[MASTER] Metadata loaded', e);
+                    localView.play();
+                    LOG.debug('[MASTER] Play...');
+                }
             } catch (err) {
                 LOG.error('[VIEWER] Could not find webcam', err);
                 return;
@@ -83,8 +92,10 @@ export default class Viewer extends Caller {
                     event.channel.onmessage = this.onRemoteDataMessage;
                 };
             }
-            this.peerConnectionStatsInterval = setInterval(() => this.peerConnection.getStats()
-                .then(this.onStatisticReport()), 1000);
+            this.peerConnectionStatsInterval = setInterval(() => {
+                LOG.log('[VIEWER] Read...');
+                this.peerConnection.getStats().then(this.onStatisticReport)
+            }, 1000);
 
             this.signalingClient.on('open', this.onOpen);
             this.signalingClient.on('sdpAnswer', this.onSdpAnswer);
@@ -120,6 +131,11 @@ export default class Viewer extends Caller {
                 }
                 this.remoteStream = event.streams[0];
                 remoteView.srcObject = this.remoteStream;
+                remoteView.onloadedmetadata = function (e) {
+                    LOG.debug('[MASTER] Metadata loaded', e);
+                    remoteView.play();
+                    LOG.debug('[MASTER] Play...');
+                }
             });
             LOG.log('[VIEWER] Starting viewer connection');
             this.signalingClient.open();
@@ -148,23 +164,7 @@ export default class Viewer extends Caller {
             this.remoteStream = null;
         }
 
-        if (this.peerConnectionStatsInterval) {
-            clearInterval(this.peerConnectionStatsInterval);
-            this.peerConnectionStatsInterval = null;
-        }
-
-        const localView = document.getElementById(this.config.localViewId);
-        if (localView) {
-            localView.srcObject = null;
-        }
-        const remoteView = document.getElementById(this.config.remoteViewId);
-        if (remoteView) {
-            remoteView.srcObject = null;
-        }
-
-        if (this.dataChannel) {
-            this.dataChannel = null;
-        }
+        super.stop();
     }
 
     sendMessage(message) {

@@ -5,6 +5,7 @@ import {Auth} from "aws-amplify";
 import LOG from './Logger';
 import React from "react";
 import { Switch } from '@mui/material';
+import adapter from 'webrtc-adapter';
 
 const checkForVideoAudioAccess = async () => {
     try {
@@ -28,19 +29,19 @@ checkForVideoAudioAccess();
 class App extends React.Component {
     constructor(props) {
         super(props);
+        const {signOut} = props;
+        this.state = {signOut, isMaster: true};
+        this.masterOrViewerChoice = this.masterOrViewerChoice.bind(this);
         LOG.debug('App props:', props);
         Auth.currentCredentials().then(currentUserCredentials =>
         {
             LOG.debug('Current user credentials:', currentUserCredentials);
             this.setState({currentUserCredentials});
         });
-        const {signOut} = props;
-        this.state = {signOut, isMaster: false};
-        this.masterOrViewerChoice = this.masterOrViewerChoice.bind(this);
     }
 
     componentDidMount() {
-
+        LOG.info(`Browser: ${adapter.browserDetails.browser} Version: ${adapter.browserDetails.version}`);
     }
 
     masterOrViewerChoice() {
@@ -63,7 +64,7 @@ class App extends React.Component {
 
         return (
             <div className="App">
-                <header>
+                <header id='WorkspaceHeader'>
                     {this.state.isMaster ? 'Master Workspace' : 'Viewer Workspace'}
                 </header>
                 <Switch onChange={this.masterOrViewerChoice} />
