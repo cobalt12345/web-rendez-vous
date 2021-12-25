@@ -1,10 +1,10 @@
 {
   "version": "1",
   "cognitoConfig": {
-    "identityPoolName": "rendezvousd5c7d30f_identitypool_d5c7d30f",
+    "identityPoolName": "rendezvous416e2205_identitypool_416e2205",
     "allowUnauthenticatedIdentities": false,
-    "resourceNameTruncated": "rendezd5c7d30f",
-    "userPoolName": "rendezvousd5c7d30f_userpool_d5c7d30f",
+    "resourceNameTruncated": "rendez416e2205",
+    "userPoolName": "rendezvous416e2205_userpool_416e2205",
     "autoVerifiedAttributes": [
       "email"
     ],
@@ -31,20 +31,26 @@
     "userpoolClientReadAttributes": [
       "email"
     ],
-    "userpoolClientLambdaRole": "rendezd5c7d30f_userpoolclient_lambda_role",
-    "userpoolClientSetAttributes": true,
+    "userpoolClientLambdaRole": "rendez416e2205_userpoolclient_lambda_role",
+    "userpoolClientSetAttributes": false,
+    "sharedId": "416e2205",
+    "resourceName": "rendezvous416e2205",
     "authSelections": "identityPoolAndUserPool",
-    "resourceName": "rendezvousd5c7d30f",
-    "serviceName": "Cognito",
     "useDefault": "defaultSocial",
-    "sharedId": "d5c7d30f",
-    "userPoolGroupList": [],
+    "hostedUI": true,
     "usernameAttributes": [
       "email"
     ],
-    "usernameCaseSensitive": false,
-    "hostedUI": true,
     "triggers": {},
+    "hostedUIDomainName": "rendez-vous",
+    "authProvidersUserPool": [
+      "Google"
+    ],
+    "hostedUIProviderMeta": "[{\"ProviderName\":\"Google\",\"authorize_scopes\":\"openid email profile\",\"AttributeMapping\":{\"email\":\"email\",\"username\":\"sub\"}}]",
+    "userPoolGroupList": [],
+    "serviceName": "Cognito",
+    "usernameCaseSensitive": false,
+    "useEnabledMfas": true,
     "authRoleArn": {
       "Fn::GetAtt": [
         "AuthRole",
@@ -58,23 +64,11 @@
       ]
     },
     "breakCircularDependency": true,
-    "useEnabledMfas": true,
     "dependsOn": [],
-    "userPoolGroups": false,
-    "adminQueries": true,
-    "adminQueryGroup": "WebRendezvousAdminAPIGroup",
     "parentStack": {
       "Ref": "AWS::StackId"
     },
     "permissions": [],
-    "hostedUIDomainName": "rendezvous",
-    "authProvidersUserPool": [
-      "Google"
-    ],
-    "hostedUIProviderMeta": "[{\"ProviderName\":\"Google\",\"authorize_scopes\":\"openid email profile\",\"AttributeMapping\":{\"email\":\"email\",\"username\":\"sub\"}}]",
-    "authProviders": [],
-    "hostedUIProviderCreds": "[{\"ProviderName\":\"Google\"}]",
-    "googleClientId": "102645471861-ian5dqhojmnruotlv9il9emodjgdgn4r.apps.googleusercontent.com",
     "oAuthMetadata": "{\"AllowedOAuthFlows\":[\"code\"],\"AllowedOAuthScopes\":[\"phone\",\"email\",\"openid\",\"profile\",\"aws.cognito.signin.user.admin\"],\"CallbackURLs\":[\"https://www.rendez-vous.talochk.in/\"],\"LogoutURLs\":[\"https://www.rendez-vous.talochk.in/\"]}"
   }
 }

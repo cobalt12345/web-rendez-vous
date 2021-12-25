@@ -12,22 +12,14 @@
       "AmplifyAppId": "dgd3fo940hx0n"
     },
     "categories": {
-      "auth": {
-        "rendezvousd5c7d30f": {
-          "googleClientId": "102645471861-ian5dqhojmnruotlv9il9emodjgdgn4r.apps.googleusercontent.com"
-        }
-      },
       "hosting": {
         "amplifyhosting": {
           "appId": "dgd3fo940hx0n",
           "type": "manual"
         }
       },
-      "function": {
-        "AdminQueries3ce8e464": {
-          "deploymentBucketName": "amplify-rendezvous-dev-62710-deployment",
-          "s3Key": "amplify-builds/AdminQueries3ce8e464-2b30563231366e4c6477-build.zip"
-        }
+      "auth": {
+        "rendezvous416e2205": {}
       }
     }
   }

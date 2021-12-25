@@ -1,6 +1,6 @@
 {
   "auth": {
-    "rendezvousd5c7d30f": {
+    "rendezvous416e2205": {
       "service": "Cognito",
       "providerPlugin": "awscloudformation",
       "dependsOn": [],
@@ -36,44 +36,6 @@
       "type": "manual"
     }
   },
-  "function": {
-    "AdminQueries3ce8e464": {
-      "service": "Lambda",
-      "providerPlugin": "awscloudformation",
-      "build": true,
-      "dependsOn": [
-        {
-          "category": "auth",
-          "resourceName": "rendezvousd5c7d30f",
-          "attributes": [
-            "UserPoolId"
-          ]
-        }
-      ]
-    }
-  },
-  "api": {
-    "AdminQueries": {
-      "service": "API Gateway",
-      "providerPlugin": "awscloudformation",
-      "authorizationType": "AMAZON_COGNITO_USER_POOLS",
-      "dependsOn": [
-        {
-          "category": "auth",
-          "resourceName": "rendezvousd5c7d30f",
-          "attributes": [
-            "UserPoolId"
-          ]
-        },
-        {
-          "category": "function",
-          "resourceName": "AdminQueries3ce8e464",
-          "attributes": [
-            "Arn",
-            "Name"
-          ]
-        }
-      ]
-    }
-  }
+  "function": {},
+  "api": {}
 }
