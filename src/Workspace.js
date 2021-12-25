@@ -1,17 +1,20 @@
 import React from "react";
 import {Config} from "./webrtc/caller";
 import LOG from './Logger';
-import { Grid, Button } from '@mui/material';
+import { Grid, Button, Container } from '@mui/material';
 import {createConsole} from "./inlineConsole";
+import LogoutIcon from '@mui/icons-material/Logout';
 
 export default class Workspace extends React.Component {
     _controller;
     _localView;
     _remoteView;
+    wsRefLocalView;
+    wsRefRemoteView
 
     constructor(props) {
         super(props);
-        // this.wsRef = React.createRef();
+
         this.console = createConsole();
         this.submitMessage = this.submitMessage.bind(this);
         this.showHideConsole = this.showHideConsole.bind(this);
@@ -19,16 +22,17 @@ export default class Workspace extends React.Component {
         this.componentWillUnmount = this.componentWillUnmount.bind(this);
         this.startStopHandle = this.startStopHandle.bind(this);
         try {
-            this._localView = <video id={this.getLocalViewId()} autoPlay controls playsInline muted width="90%"/>;
-            this._remoteView = <video id={this.getRemoteViewId()} autoPlay controls playsInline width="90%"/>
-            Config.localViewId = this.getLocalViewId();
-            Config.remoteViewId = this.getRemoteViewId();
             this.state = {
+                signOut: props.signOut,
                 Config,
                 workspaceStarted: false,
                 inlineConsoleVisible: false
             };
+            this.state.Config.localView = React.createRef();
+            this.state.Config.remoteView = React.createRef();
             LOG.log('Configuration: ', Object.entries(Config));
+            this._localView = <video id='localViewVideo' ref={this.state.Config.localView} autoPlay controls playsInline muted width="90%"/>;
+            this._remoteView = <video id='remoteViewVideo' ref={this.state.Config.remoteView} autoPlay controls playsInline width="90%"/>
             this.initController();
 
         } catch(error) {
@@ -48,14 +52,6 @@ export default class Workspace extends React.Component {
 
     set controller(newController) {
         this._controller = newController;
-    }
-
-    getLocalViewId() {
-        throw new Error('Not implemented');
-    }
-
-    getRemoteViewId() {
-        throw new Error('Not implemented');
     }
 
     get localView() {
@@ -112,6 +108,7 @@ export default class Workspace extends React.Component {
     startStopHandle() {
         this.setState((prevState, props) => {
             const newState = {...prevState, workspaceStarted: !prevState.workspaceStarted};
+            this.props.started(newState.workspaceStarted);
             if (newState.workspaceStarted) {
                 LOG.debug('Start');
                 this._controller.start();
@@ -131,20 +128,30 @@ export default class Workspace extends React.Component {
         } else {
             this._controller.setCredentials(currentUserCredentials);
         }
-        const ClientId = this._controller.config.clientId ? <Grid item xs={12} lg={12}>Client id: {this._controller.config.clientId}</Grid> : null;
+        const ClientId = this._controller.config.clientId ?
+            <Grid item xs={12} lg={12}>Client id: {this._controller.config.clientId}</Grid> : null;
+
         return (
             <Grid container spacing={2}>
                 {ClientId}
                 <Grid item xs={6} lg={6}>
-                    <h5 id='localStreamViewHeader'>Local Stream View</h5>
-                    {this.localView}
+                    <h3 id='localStreamViewHeader'>Local Stream View</h3>
+                    <Container fixed>
+                        {this.localView}
+                    </Container>
                 </Grid>
                 <Grid item xs={6} lg={6}>
-                    <h5>Remote Stream View</h5>
-                    {this.remoteView}
+                    <h3>Remote Stream View</h3>
+                    <Container fixed>
+                        {this.remoteView}
+                    </Container>
                 </Grid>
-                <Grid item xs={12} lg={12}>
-                    <Button variant="contained" onClick={this.startStopHandle}>{this.state.workspaceStarted ? 'Stop' : 'Start'}</Button>
+                <Grid item xs={6} lg={6}>
+                    <Button variant="outlined" color='error' startIcon={<LogoutIcon />}
+                            onClick={this.startStopHandle}>{this.state.workspaceStarted ? 'Stop' : 'Start'}</Button>
+                </Grid>
+                <Grid item xs={6} lg={6}>
+                    <Button onClick={this.state.signOut} variant='contained' startIcon={<LogoutIcon />}>Sign out</Button>
                 </Grid>
                 {/*<Grid item xs={8} lg={8}>*/}
                 {/*    <h4>Chat:</h4>*/}

@@ -4,34 +4,16 @@ import ViewerWorkspace from './ViewerWorkspace';
 import {Auth} from "aws-amplify";
 import LOG from './Logger';
 import React from "react";
-import { Switch } from '@mui/material';
+import { Switch, Paper } from '@mui/material';
 import adapter from 'webrtc-adapter';
-
-const checkForVideoAudioAccess = async () => {
-    try {
-        const cameraResult = await navigator.permissions.query({ name: 'camera' });
-        LOG.info('Camera access: ', cameraResult.state);
-        // The state property may be 'denied', 'prompt' and 'granted'
-        // this.isCameraAccessGranted = cameraResult.state !== 'denied';
-
-        const microphoneResult = await navigator.permissions.query({ name: 'microphone' });
-        // this.isMicrophoneAccessGranted = microphoneResult.state !== 'denied';
-        LOG.info('Micro access: ', microphoneResult.state);
-    } catch(e) {
-        console.error('An error occurred while checking the site permissions', e);
-    }
-
-    return true;
-}
-
-checkForVideoAudioAccess();
 
 class App extends React.Component {
     constructor(props) {
         super(props);
         const {signOut} = props;
-        this.state = {signOut, isMaster: true};
+        this.state = {signOut, isMaster: true, workspaceStarted: false};
         this.masterOrViewerChoice = this.masterOrViewerChoice.bind(this);
+        this.handleWorkspaceStartStop = this.handleWorkspaceStartStop.bind(this);
         LOG.debug('App props:', props);
         Auth.currentCredentials().then(currentUserCredentials =>
         {
@@ -47,9 +29,14 @@ class App extends React.Component {
     masterOrViewerChoice() {
         this.setState(prevState => {
             return {
+                ...prevState,
                 isMaster: !prevState.isMaster
             }
         });
+    }
+
+    handleWorkspaceStartStop(started) {
+        this.setState({workspaceStarted: started});
     }
 
     render() {
@@ -57,19 +44,22 @@ class App extends React.Component {
 
         let workspace;
         if (this.state.isMaster) {
-            workspace = <MasterWorkspace currentUserCredentials={this.state.currentUserCredentials}/>;
+            workspace = <MasterWorkspace currentUserCredentials={this.state.currentUserCredentials}
+                                         signOut={this.state.signOut} started={this.handleWorkspaceStartStop}/>;
         } else {
-            workspace = <ViewerWorkspace currentUserCredentials={this.state.currentUserCredentials}/>
+            workspace = <ViewerWorkspace currentUserCredentials={this.state.currentUserCredentials}
+                                         signOut={this.state.signOut} started={this.handleWorkspaceStartStop}/>
         }
 
         return (
             <div className="App">
-                <header id='WorkspaceHeader'>
-                    {this.state.isMaster ? 'Master Workspace' : 'Viewer Workspace'}
-                </header>
-                <Switch onChange={this.masterOrViewerChoice} />
-                {workspace}
-                <button onClick={this.state.signOut}>Sign out</button>
+                <Paper variant='outlined'>
+                    <h1 id='WorkspaceHeader'>
+                        {this.state.isMaster ? 'Master Workspace' : 'Viewer Workspace'}
+                    </h1>
+                    <Switch onChange={this.masterOrViewerChoice} disabled={this.state.workspaceStarted}/>
+                    {workspace}
+                </Paper>
             </div>
         );
     }

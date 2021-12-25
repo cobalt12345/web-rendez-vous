@@ -9,14 +9,6 @@ export default class MasterWorkspace extends Workspace {
         return new Master(this.state.Config);
     }
 
-    getLocalViewId() {
-        return "masterLocalView";
-    }
-
-    getRemoteViewId() {
-        return "masterRemoteView";
-    }
-
     render() {
         LOG.debug("Render MasterWorkspace with props:", this.props);
         return (

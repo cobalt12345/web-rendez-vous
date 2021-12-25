@@ -27,7 +27,8 @@ export default class Master extends Caller {
                     .then(stream => {
                         LOG.debug('[MASTER] Local view stream', stream);
                         this.localStream = stream;
-                        const localView = document.getElementById(this.config.localViewId);
+                        const localView = this.config.localView.current;
+                        LOG.debug('[MASTER] Local view: ', localView.id);
                         localView.srcObject = stream;
                         localView.onloadedmetadata = function (e) {
                             LOG.debug('[MASTER] Metadata loaded', e);
@@ -96,7 +97,8 @@ export default class Master extends Caller {
         peerConnection.addEventListener('track', event => {
             LOG.log('[MASTER] Received remote track from client: ' + remoteClientId);
             LOG.debug('[MASTER] Event: ', event);
-            const remoteView = document.getElementById(this.config.remoteViewId);
+            const remoteView = this.config.remoteView.current;
+            LOG.debug('[MASTER] Remote view: ', remoteView.id);
             if (remoteView.srcObject) {
                 return;
             }

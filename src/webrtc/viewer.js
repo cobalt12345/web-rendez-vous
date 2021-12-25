@@ -32,12 +32,13 @@ export default class Viewer extends Caller {
                 this.localStream.getTracks().forEach(track => this.peerConnection.addTrack(track,
                     this.localStream));
 
-                const localView = document.getElementById(this.config.localViewId);
+                const localView = this.config.localView.current;
+                LOG.debug('[VIEWER] Local view: ', localView.id);
                 localView.srcObject = this.localStream;
                 localView.onloadedmetadata = function (e) {
-                    LOG.debug('[MASTER] Metadata loaded', e);
+                    LOG.debug('[VIEWER] Metadata loaded', e);
                     localView.play();
-                    LOG.debug('[MASTER] Play...');
+                    LOG.debug('[VIEWER] Play...');
                 }
             } catch (err) {
                 LOG.error('[VIEWER] Could not find webcam', err);
@@ -125,16 +126,17 @@ export default class Viewer extends Caller {
             // As remote tracks are received, add them to the remote view
             this.peerConnection.addEventListener('track', event => {
                 LOG.log('[VIEWER] Received remote track');
-                const remoteView = document.getElementById(this.config.remoteViewId);
+                const remoteView = this.config.remoteView.current;
+                LOG.debug('[VIEWER] Remote view: ', remoteView.id);
                 if (remoteView.srcObject) {
                     return;
                 }
                 this.remoteStream = event.streams[0];
                 remoteView.srcObject = this.remoteStream;
                 remoteView.onloadedmetadata = function (e) {
-                    LOG.debug('[MASTER] Metadata loaded', e);
+                    LOG.debug('[VIEWER] Metadata loaded', e);
                     remoteView.play();
-                    LOG.debug('[MASTER] Play...');
+                    LOG.debug('[VIEWER] Play...');
                 }
             });
             LOG.log('[VIEWER] Starting viewer connection');

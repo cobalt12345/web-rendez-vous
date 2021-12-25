@@ -15,15 +15,6 @@ export default class ViewerWorkspace extends Workspace {
         return new Viewer(Config);
     }
 
-    getLocalViewId() {
-        return "viewerLocalView";
-    }
-
-    getRemoteViewId() {
-        return "viewerRemoteView";
-    }
-
-
     getRandomClientId() {
         return Math.random()
             .toString(36)
