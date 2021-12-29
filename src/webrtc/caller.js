@@ -27,7 +27,7 @@ const Config = {
     sendVideo: true,
     sendAudio: true,
     openDataChannel: false,
-    useTrickleICE: false,
+    useTrickleICE: true,
     clientId: null, //getRandomClientId() - otherwise error
     correctClockSkew: true,
     systemClockOffset: 0,
