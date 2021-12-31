@@ -23,7 +23,7 @@ export default class ViewerWorkspace extends Workspace {
     }
 
     render() {
-        LOG.debug("Render MasterWorkspace with props:", this.props);
+        LOG.debug("Render ViewerWorkspace with props:", this.props);
 
         return (
             super.render()

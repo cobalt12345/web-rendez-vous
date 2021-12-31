@@ -26,7 +26,7 @@ const Config = {
     widescreen: true,
     sendVideo: true,
     sendAudio: true,
-    openDataChannel: false,
+    openDataChannel: true,
     useTrickleICE: true,
     clientId: null, //getRandomClientId() - otherwise error
     correctClockSkew: true,
@@ -40,7 +40,9 @@ class Caller {
     configuration;
     peerConnectionByClientId = {}
     onStatisticReport = (report) => {LOG.log(`[${this.getRole()}] onStatisticReport`, Object.entries(report))};
-    onRemoteDataMessage = (channel, event) => {LOG.log(`[${this.getRole()}] onRemoteDataMessage`, channel, event)};
+    onRemoteDataMessage = (channel, event) => {
+        LOG.log(`[${this.getRole()}] onRemoteDataMessage`, channel, event);
+    };
     kinesisVideoClient = null;
     signalingClient;
     constraints;
@@ -58,6 +60,8 @@ class Caller {
         this.getChannelARN = this.getChannelARN.bind(this);
 
     }
+
+
 
     setCredentials(credentials) {
         this.config.credentials = credentials;
