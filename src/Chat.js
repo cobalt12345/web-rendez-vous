@@ -1,8 +1,11 @@
 import React from "react";
 import {Grid, Button, Container, TextField, Stack} from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
+import LOG from './Logger';
 
 class Chat extends React.Component {
+
+    messageReceivedSnd = new Audio("/notification_high-intensity.wav");
 
     constructor(props) {
         super(props);
@@ -15,6 +18,7 @@ class Chat extends React.Component {
         this.handleMessageTypeIn = this.handleMessageTypeIn.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
         this.receiveMessage = this.receiveMessage.bind(this);
+        this.ref = React.createRef();
     }
 
     handleMessageTypeIn(event) {
@@ -35,6 +39,7 @@ class Chat extends React.Component {
     }
 
     receiveMessage(message) {
+        this.ref.current.play();
         this.setState((prevState, props) => {
             return {
                 ...prevState,
@@ -50,10 +55,16 @@ class Chat extends React.Component {
             <Grid item xs={12} lg={12}>
             <Grid container spacing={2}>
                 <Grid item xs={6} lg={6}>
+                    <audio ref={this.ref} crossOrigin='anonymous'>
+                        <source src='notification_high-intensity.wav' type='audio/wav' />
+                    </audio>
                     <Container fixed>
                         <Stack spacing={2} >
                             <TextField id='new-message-text' fullWidth label='Message:' onChange={this.handleMessageTypeIn}
                                        value={this.state.message} multiline rows={4} variant='filled'
+                                       onKeyPress={event => {
+                                           if (event.key === 'Enter') this.sendMessage();
+                                       }}
                                 />
                             <Button variant='contained' startIcon={<SendIcon/>} onClick={this.sendMessage}>Send</Button>
                         </Stack>
