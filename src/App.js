@@ -6,6 +6,7 @@ import LOG from './Logger';
 import React from "react";
 import { Switch, Paper } from '@mui/material';
 import adapter from 'webrtc-adapter';
+import MasterOrViewerDialog from "./webrtc/masterOrViewerDialog";
 
 class App extends React.Component {
     constructor(props) {
@@ -53,6 +54,7 @@ class App extends React.Component {
 
         return (
             <div className="App">
+                <MasterOrViewerDialog />
                 <Paper variant='outlined'>
                     <h1 id='WorkspaceHeader'>
                         {this.state.isMaster ? 'Master Workspace' : 'Viewer Workspace'}
